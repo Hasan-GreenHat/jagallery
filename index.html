@@ -592,7 +592,8 @@
                 </button>
                 <input type="file" id="fileInput" accept="video/*" multiple style="display: none;">
                 <p class="upload-hint">or drag & drop videos here</p>
-                <p class="upload-info">Supports MP4, WebM, MOV | Max 100MB per file</p>
+                <!-- CHANGED FROM 100MB TO 200MB HERE -->
+                <p class="upload-info">Supports MP4, WebM, MOV | Max 200MB per file</p>
                 
                 <!-- Storage Info -->
                 <div class="storage-info">
@@ -715,6 +716,10 @@
         let db = null;
         let videos = [];
 
+        // ========== CHANGED FROM 100MB TO 200MB HERE ==========
+        const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB in bytes
+        // ======================================================
+
         // Track current upload session
         let currentUploadSession = {
             files: [],
@@ -831,27 +836,31 @@
             e.preventDefault();
             dropZone.classList.remove('drag-over');
             
+            // ========== CHANGED FROM 100MB TO 200MB HERE ==========
             const files = Array.from(e.dataTransfer.files).filter(file => 
-                file.type.startsWith('video/') && file.size <= 100 * 1024 * 1024
+                file.type.startsWith('video/') && file.size <= MAX_FILE_SIZE
             );
+            // ======================================================
             
             if (files.length > 0) {
                 showFileQueue(files);
             } else {
-                showToast('Please drop valid video files (max 100MB each)', 'error');
+                showToast(`Please drop valid video files (max ${formatFileSize(MAX_FILE_SIZE)})`, 'error');
             }
         }
 
         function handleFileSelect(e) {
+            // ========== CHANGED FROM 100MB TO 200MB HERE ==========
             const files = Array.from(e.target.files).filter(file => 
-                file.type.startsWith('video/') && file.size <= 100 * 1024 * 1024
+                file.type.startsWith('video/') && file.size <= MAX_FILE_SIZE
             );
+            // ======================================================
             
             if (files.length > 0) {
                 showFileQueue(files);
                 fileInput.value = ''; // Reset input
             } else {
-                showToast('Please select valid video files (max 100MB each)', 'error');
+                showToast(`Please select valid video files (max ${formatFileSize(MAX_FILE_SIZE)})`, 'error');
             }
         }
 
@@ -945,6 +954,16 @@
             progressText.textContent = '0%';
             
             try {
+                // Check total size before uploading
+                const totalSize = currentUploadSession.files.reduce((sum, file) => sum + file.size, 0);
+                
+                // ========== ADDED: WARN USER ABOUT LARGE UPLOADS ==========
+                if (totalSize > 500 * 1024 * 1024) { // 500MB
+                    if (!confirm(`You are about to upload ${formatFileSize(totalSize)}. This may take a while. Continue?`)) {
+                        throw new Error('Upload cancelled by user');
+                    }
+                }
+                
                 // Process each file
                 for (let i = 0; i < currentUploadSession.files.length; i++) {
                     await processSingleFile(currentUploadSession.files[i], i);
@@ -1271,8 +1290,8 @@
                 // Update display
                 storageUsed.textContent = formattedSize;
                 
-                // Calculate percentage (assuming max 500MB for visualization)
-                const maxSize = 500 * 1024 * 1024; // 500MB
+                // Calculate percentage (assuming max 2GB for visualization)
+                const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
                 const percentage = Math.min((totalSize / maxSize) * 100, 100);
                 storageBar.style.width = percentage + '%';
                 
