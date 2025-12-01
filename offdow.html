@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Gallery - Upload & Watch Anywhere</title>
+    <meta name="theme-color" content="#2196f3">
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2196f3;
+            --secondary-color: #f5f5f5;
+            --danger-color: #f44336;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --text-color: #333;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            min-height: 90vh;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        /* Sync Status */
+        .sync-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .sync-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .sync-online {
+            background: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+
+        .sync-offline {
+            background: var(--warning-color);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: var(--secondary-color);
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 3px dashed var(--border-color);
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .upload-section.drag-over {
+            border-color: var(--primary-color);
+            background: rgba(33, 150, 243, 0.05);
+        }
+
+        .upload-area {
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            font-weight: 600;
+            min-width: 150px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #666;
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-icon {
+            font-size: 1.2em;
+        }
+
+        .upload-hint {
+            margin: 20px 0 10px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .upload-info {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        /* Storage Info */
+        .storage-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .storage-bar {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .storage-used {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Upload Controls */
+        .upload-controls {
+            display: none;
+            margin-top: 30px;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Upload Queue */
+        .upload-queue {
+            display: none;
+            margin-top: 30px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .queue-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s;
+        }
+
+        .queue-item:last-child {
+            border-bottom: none;
+        }
+
+        .queue-item:hover {
+            background: var(--secondary-color);
+        }
+
+        .queue-item-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .queue-item-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .queue-item-size {
+            color: #666;
+            font-size: 0.9em;
+            min-width: 80px;
+        }
+
+        .queue-item-status {
+            font-size: 0.8em;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-processing {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-uploaded {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .queue-item-remove {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 5px 10px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .queue-item-remove:hover {
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        /* Gallery Controls */
+        .gallery-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .gallery-controls h2 {
+            font-size: 1.8em;
+            color: var(--text-color);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Video Grid */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .video-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 15px;
+            }
+            .upload-section {
+                padding: 20px;
+            }
+            .upload-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .video-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            border: 1px solid var(--border-color);
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .video-thumbnail {
+            position: relative;
+            height: 200px;
+            background: #000;
+            cursor: pointer;
+        }
+
+        .video-thumbnail video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-thumbnail::after {
+            content: '▶';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            opacity: 0.8;
+            transition: all 0.3s;
+        }
+
+        .video-thumbnail:hover::after {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .video-info {
+            padding: 20px;
+        }
+
+        .video-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #666;
+            font-size: 0.9em;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 5px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1 / -1;
+        }
+
+        .empty-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 1000px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2em;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 10px;
+        }
+
+        .modal-video {
+            width: 100%;
+            border-radius: 10px;
+            background: black;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1001;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📱 Video Gallery</h1>
+            <p class="subtitle">Upload once, watch anywhere - Works on PC & Mobile</p>
+            <div class="sync-status" id="syncStatus">
+                <span class="sync-indicator sync-online"></span>
+                <span id="syncText">Storage: IndexedDB</span>
+            </div>
+        </header>
+
+        <!-- Upload Section -->
+        <div class="upload-section" id="dropZone">
+            <div class="upload-area">
+                <button id="uploadBtn" class="btn btn-primary">
+                    <span class="btn-icon">📤</span>
+                    Choose Videos
+                </button>
+                <input type="file" id="fileInput" accept="video/*" multiple style="display: none;">
+                <p class="upload-hint">or drag & drop videos here</p>
+                <p class="upload-info">Supports MP4, WebM, MOV | Max 100MB per file</p>
+                
+                <!-- Storage Info -->
+                <div class="storage-info">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>Storage Used:</span>
+                        <span id="storageUsed">0 MB</span>
+                    </div>
+                    <div class="storage-bar">
+                        <div id="storageBar" class="storage-used"></div>
+                    </div>
+                    <small id="storageStatus">Videos are saved locally and persist across sessions</small>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div id="progressContainer" class="progress-container">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div id="progressText" class="progress-text">0%</div>
+            </div>
+
+            <!-- Upload Queue -->
+            <div id="uploadQueue" class="upload-queue">
+                <!-- Upload queue items will appear here -->
+            </div>
+
+            <!-- Upload Controls -->
+            <div id="uploadControls" class="upload-controls">
+                <button id="saveBtn" class="btn btn-success">
+                    <span class="btn-icon">💾</span>
+                    Save to Gallery
+                </button>
+                <button id="cancelBtn" class="btn btn-warning">
+                    <span class="btn-icon">❌</span>
+                    Cancel Upload
+                </button>
+            </div>
+        </div>
+
+        <!-- Gallery Controls -->
+        <div class="gallery-controls">
+            <h2>Your Videos</h2>
+            <div class="controls">
+                <button id="refreshBtn" class="btn btn-secondary">
+                    🔄 Refresh
+                </button>
+                <button id="exportBtn" class="btn btn-primary">
+                    📤 Export Data
+                </button>
+                <button id="importBtn" class="btn btn-secondary">
+                    📥 Import Data
+                </button>
+                <button id="clearAllBtn" class="btn btn-danger">
+                    🗑️ Clear All
+                </button>
+            </div>
+        </div>
+
+        <!-- Video Grid -->
+        <div id="gallery" class="video-grid">
+            <!-- Videos will be loaded here -->
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">📹</div>
+                <h3>No videos yet</h3>
+                <p>Upload your first video to get started!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div id="videoModal" class="modal">
+        <div class="modal-content">
+            <button class="close">&times;</button>
+            <video id="modalVideo" class="modal-video" controls>
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Import File Input (hidden) -->
+    <input type="file" id="importFile" accept=".json" style="display: none;">
+
+    <script>
+        // DOM Elements
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const dropZone = document.getElementById('dropZone');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const uploadQueue = document.getElementById('uploadQueue');
+        const uploadControls = document.getElementById('uploadControls');
+        const saveBtn = document.getElementById('saveBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const gallery = document.getElementById('gallery');
+        const emptyState = document.getElementById('emptyState');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const importBtn = document.getElementById('importBtn');
+        const importFile = document.getElementById('importFile');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const videoModal = document.getElementById('videoModal');
+        const modalVideo = document.getElementById('modalVideo');
+        const closeModal = document.querySelector('.close');
+        const toast = document.getElementById('toast');
+        const syncStatus = document.getElementById('syncStatus');
+        const syncText = document.getElementById('syncText');
+        const storageUsed = document.getElementById('storageUsed');
+        const storageBar = document.getElementById('storageBar');
+        const storageStatus = document.getElementById('storageStatus');
+
+        // Database
+        const DB_NAME = 'VideoGalleryDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'videos';
+        let db = null;
+        let videos = [];
+
+        // Track current upload session
+        let currentUploadSession = {
+            files: [],
+            processedFiles: [],
+            isUploading: false
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initDatabase();
+            await loadVideos();
+            setupEventListeners();
+            updateStorageInfo();
+            checkIfFirstVisit();
+        });
+
+        async function initDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => {
+                    console.error('IndexedDB error:', request.error);
+                    showToast('Error: Could not initialize database', 'error');
+                    reject(request.error);
+                };
+                
+                request.onsuccess = () => {
+                    db = request.result;
+                    console.log('Database initialized');
+                    resolve();
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    
+                    // Create object store if it doesn't exist
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const store = db.createObjectStore(STORE_NAME, { 
+                            keyPath: 'id',
+                            autoIncrement: true 
+                        });
+                        
+                        // Create indexes for faster searching
+                        store.createIndex('name', 'name', { unique: false });
+                        store.createIndex('uploadedAt', 'uploadedAt', { unique: false });
+                        store.createIndex('size', 'size', { unique: false });
+                    }
+                };
+            });
+        }
+
+        function setupEventListeners() {
+            // Upload button click
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            
+            // File input change
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // Drag and drop
+            dropZone.addEventListener('dragover', handleDragOver);
+            dropZone.addEventListener('dragleave', handleDragLeave);
+            dropZone.addEventListener('drop', handleDrop);
+            
+            // Save button
+            saveBtn.addEventListener('click', saveToGallery);
+            
+            // Cancel button
+            cancelBtn.addEventListener('click', cancelUpload);
+            
+            // Refresh button
+            refreshBtn.addEventListener('click', () => {
+                loadVideos();
+                showToast('Gallery refreshed', 'info');
+            });
+            
+            // Export button
+            exportBtn.addEventListener('click', exportData);
+            
+            // Import button
+            importBtn.addEventListener('click', () => importFile.click());
+            importFile.addEventListener('change', handleImport);
+            
+            // Clear all button
+            clearAllBtn.addEventListener('click', clearAllVideos);
+            
+            // Modal close
+            closeModal.addEventListener('click', () => {
+                videoModal.style.display = 'none';
+                modalVideo.pause();
+                modalVideo.src = '';
+            });
+            
+            // Close modal on outside click
+            videoModal.addEventListener('click', (e) => {
+                if (e.target === videoModal) {
+                    videoModal.style.display = 'none';
+                    modalVideo.pause();
+                    modalVideo.src = '';
+                }
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
+            const files = Array.from(e.dataTransfer.files).filter(file => 
+                file.type.startsWith('video/') && file.size <= 100 * 1024 * 1024
+            );
+            
+            if (files.length > 0) {
+                showFileQueue(files);
+            } else {
+                showToast('Please drop valid video files (max 100MB each)', 'error');
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files).filter(file => 
+                file.type.startsWith('video/') && file.size <= 100 * 1024 * 1024
+            );
+            
+            if (files.length > 0) {
+                showFileQueue(files);
+                fileInput.value = ''; // Reset input
+            } else {
+                showToast('Please select valid video files (max 100MB each)', 'error');
+            }
+        }
+
+        function showFileQueue(files) {
+            // Reset current session
+            currentUploadSession = {
+                files: files,
+                processedFiles: [],
+                isUploading: false
+            };
+            
+            // Show upload queue
+            uploadQueue.innerHTML = '';
+            uploadQueue.style.display = 'block';
+            
+            // Add files to queue
+            files.forEach((file, index) => {
+                const queueItem = document.createElement('div');
+                queueItem.className = 'queue-item';
+                queueItem.id = `queue-item-${index}`;
+                
+                queueItem.innerHTML = `
+                    <div class="queue-item-info">
+                        <span class="queue-item-name" title="${file.name}">
+                            ${file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name}
+                        </span>
+                        <span class="queue-item-size">${formatFileSize(file.size)}</span>
+                        <span class="queue-item-status status-pending">Pending</span>
+                    </div>
+                    <button class="queue-item-remove" data-index="${index}">✕</button>
+                `;
+                
+                uploadQueue.appendChild(queueItem);
+                
+                // Add remove button listener
+                const removeBtn = queueItem.querySelector('.queue-item-remove');
+                removeBtn.addEventListener('click', () => removeFromQueue(index));
+            });
+            
+            // Show upload controls
+            uploadControls.style.display = 'flex';
+            
+            // Scroll to queue
+            uploadQueue.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            showToast(`${files.length} video(s) added to upload queue. Click "Save to Gallery" to upload.`, 'info');
+        }
+
+        function removeFromQueue(index) {
+            currentUploadSession.files.splice(index, 1);
+            
+            // Update queue display
+            const queueItem = document.getElementById(`queue-item-${index}`);
+            if (queueItem) {
+                queueItem.remove();
+            }
+            
+            // Update IDs for remaining items
+            for (let i = index; i < currentUploadSession.files.length; i++) {
+                const item = document.getElementById(`queue-item-${i + 1}`);
+                if (item) {
+                    item.id = `queue-item-${i}`;
+                    item.querySelector('.queue-item-remove').dataset.index = i;
+                }
+            }
+            
+            // Hide queue and controls if empty
+            if (currentUploadSession.files.length === 0) {
+                uploadQueue.style.display = 'none';
+                uploadControls.style.display = 'none';
+            }
+        }
+
+        async function saveToGallery() {
+            if (currentUploadSession.files.length === 0) {
+                showToast('No videos to upload', 'error');
+                return;
+            }
+            
+            if (currentUploadSession.isUploading) {
+                return;
+            }
+            
+            currentUploadSession.isUploading = true;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="btn-icon">⏳</span>Uploading...';
+            
+            // Show progress
+            progressContainer.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressText.textContent = '0%';
+            
+            try {
+                // Process each file
+                for (let i = 0; i < currentUploadSession.files.length; i++) {
+                    await processSingleFile(currentUploadSession.files[i], i);
+                    
+                    // Update progress
+                    const progress = ((i + 1) / currentUploadSession.files.length) * 100;
+                    progressFill.style.width = progress + '%';
+                    progressText.textContent = Math.round(progress) + '%';
+                }
+                
+                // Save all processed files to database
+                const successfulUploads = currentUploadSession.processedFiles.filter(f => f.success);
+                
+                if (successfulUploads.length > 0) {
+                    for (const upload of successfulUploads) {
+                        await saveVideoToDB(upload.video);
+                    }
+                    
+                    showToast(`Successfully saved ${successfulUploads.length} video(s) to gallery!`, 'success');
+                    
+                    // Reset upload session
+                    resetUploadSession();
+                    
+                    // Load updated videos and update storage info
+                    await loadVideos();
+                    updateStorageInfo();
+                }
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                showToast('Error uploading videos: ' + error.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<span class="btn-icon">💾</span>Save to Gallery';
+                currentUploadSession.isUploading = false;
+                
+                // Hide progress after delay
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 2000);
+            }
+        }
+
+        async function processSingleFile(file, index) {
+            return new Promise((resolve) => {
+                // Update queue status
+                const queueItem = document.getElementById(`queue-item-${index}`);
+                if (queueItem) {
+                    const status = queueItem.querySelector('.queue-item-status');
+                    status.textContent = 'Processing';
+                    status.className = 'queue-item-status status-processing';
+                }
+                
+                // Read video metadata
+                const videoElement = document.createElement('video');
+                videoElement.preload = 'metadata';
+                
+                videoElement.onloadedmetadata = async () => {
+                    try {
+                        // Generate thumbnail
+                        const thumbnail = await generateThumbnail(file, videoElement.duration);
+                        
+                        // Read file as ArrayBuffer for IndexedDB storage
+                        const arrayBuffer = await readFileAsArrayBuffer(file);
+                        
+                        // Create video object
+                        const videoObj = {
+                            id: Date.now() + index,
+                            name: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+                            originalName: file.name,
+                            size: file.size,
+                            formattedSize: formatFileSize(file.size),
+                            duration: formatDuration(videoElement.duration),
+                            durationSeconds: videoElement.duration,
+                            type: file.type,
+                            lastModified: new Date().toLocaleDateString(),
+                            uploadedAt: new Date().toISOString(),
+                            data: arrayBuffer,
+                            thumbnail: thumbnail,
+                            mimeType: file.type
+                        };
+                        
+                        // Add to processed files
+                        currentUploadSession.processedFiles.push({
+                            success: true,
+                            video: videoObj,
+                            index: index
+                        });
+                        
+                        // Update queue status
+                        if (queueItem) {
+                            const status = queueItem.querySelector('.queue-item-status');
+                            status.textContent = 'Ready';
+                            status.className = 'queue-item-status status-uploaded';
+                        }
+                        
+                        resolve();
+                    } catch (error) {
+                        console.error('Error processing file:', error);
+                        currentUploadSession.processedFiles.push({
+                            success: false,
+                            error: error.message,
+                            index: index
+                        });
+                        resolve();
+                    }
+                };
+                
+                videoElement.onerror = () => {
+                    // Fallback if metadata can't be read
+                    currentUploadSession.processedFiles.push({
+                        success: false,
+                        error: 'Could not read video metadata',
+                        index: index
+                    });
+                    resolve();
+                };
+                
+                videoElement.src = URL.createObjectURL(file);
+            });
+        }
+
+        function readFileAsArrayBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        async function saveVideoToDB(video) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.add(video);
+                
+                request.onsuccess = () => {
+                    resolve(request.result);
+                };
+                
+                request.onerror = () => {
+                    reject(request.error);
+                };
+            });
+        }
+
+        async function loadVideos() {
+            try {
+                videos = await getAllVideosFromDB();
+                
+                gallery.innerHTML = '';
+                
+                if (videos.length === 0) {
+                    emptyState.style.display = 'block';
+                    gallery.appendChild(emptyState);
+                    return;
+                }
+                
+                emptyState.style.display = 'none';
+                
+                // Sort videos by upload date (newest first)
+                videos.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+                
+                for (const video of videos) {
+                    const videoCard = await createVideoCard(video);
+                    gallery.appendChild(videoCard);
+                }
+            } catch (error) {
+                console.error('Error loading videos:', error);
+                showToast('Error loading videos', 'error');
+            }
+        }
+
+        async function getAllVideosFromDB() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+                
+                request.onsuccess = () => {
+                    resolve(request.result || []);
+                };
+                
+                request.onerror = () => {
+                    reject(request.error);
+                };
+            });
+        }
+
+        async function createVideoCard(video) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            
+            // Create blob URL from ArrayBuffer
+            const blob = new Blob([video.data], { type: video.mimeType });
+            const videoUrl = URL.createObjectURL(blob);
+            
+            card.innerHTML = `
+                <div class="video-thumbnail" data-id="${video.id}">
+                    ${video.thumbnail ? 
+                        `<img src="${video.thumbnail}" alt="${video.name}" style="width:100%;height:100%;object-fit:cover;">` :
+                        `<div style="width:100%;height:100%;background:#333;display:flex;align-items:center;justify-content:center;color:white;">No Preview</div>`
+                    }
+                </div>
+                <div class="video-info">
+                    <div class="video-title" title="${video.originalName || video.name}">
+                        ${video.name.length > 20 ? video.name.substring(0, 20) + '...' : video.name}
+                    </div>
+                    <div class="video-details">
+                        <span>${video.duration}</span>
+                        <span>${video.formattedSize}</span>
+                        <span>${new Date(video.uploadedAt).toLocaleDateString()}</span>
+                        <button class="delete-btn" data-id="${video.id}" title="Delete video">🗑️</button>
+                    </div>
+                </div>
+            `;
+            
+            // Add event listeners
+            const thumbnail = card.querySelector('.video-thumbnail');
+            const deleteBtn = card.querySelector('.delete-btn');
+            
+            thumbnail.addEventListener('click', () => {
+                playVideo(videoUrl, video.name);
+            });
+            
+            deleteBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await deleteVideo(video.id);
+            });
+            
+            // Store the blob URL for cleanup
+            card._videoUrl = videoUrl;
+            
+            return card;
+        }
+
+        async function deleteVideo(id) {
+            if (confirm('Are you sure you want to delete this video?')) {
+                try {
+                    await deleteVideoFromDB(id);
+                    
+                    // Find and revoke blob URL
+                    const cards = document.querySelectorAll('.video-card');
+                    for (const card of cards) {
+                        if (card._videoUrl) {
+                            // Check if this is the card for the deleted video
+                            const deleteBtn = card.querySelector(`[data-id="${id}"]`);
+                            if (deleteBtn) {
+                                URL.revokeObjectURL(card._videoUrl);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    await loadVideos();
+                    updateStorageInfo();
+                    showToast('Video deleted successfully!');
+                } catch (error) {
+                    console.error('Error deleting video:', error);
+                    showToast('Error deleting video', 'error');
+                }
+            }
+        }
+
+        async function deleteVideoFromDB(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.delete(id);
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function clearAllVideos() {
+            if (videos.length === 0) {
+                showToast('No videos to clear', 'info');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete ALL videos? This cannot be undone.')) {
+                try {
+                    // Revoke all blob URLs
+                    const cards = document.querySelectorAll('.video-card');
+                    cards.forEach(card => {
+                        if (card._videoUrl) {
+                            URL.revokeObjectURL(card._videoUrl);
+                        }
+                    });
+                    
+                    // Clear database
+                    await clearAllVideosFromDB();
+                    
+                    videos = [];
+                    await loadVideos();
+                    updateStorageInfo();
+                    showToast('All videos cleared successfully!');
+                } catch (error) {
+                    console.error('Error clearing videos:', error);
+                    showToast('Error clearing videos', 'error');
+                }
+            }
+        }
+
+        async function clearAllVideosFromDB() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.clear();
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function updateStorageInfo() {
+            try {
+                // Get total size of all videos
+                const totalSize = videos.reduce((sum, video) => sum + (video.size || 0), 0);
+                const formattedSize = formatFileSize(totalSize);
+                
+                // Update display
+                storageUsed.textContent = formattedSize;
+                
+                // Calculate percentage (assuming max 500MB for visualization)
+                const maxSize = 500 * 1024 * 1024; // 500MB
+                const percentage = Math.min((totalSize / maxSize) * 100, 100);
+                storageBar.style.width = percentage + '%';
+                
+                // Update status text
+                storageStatus.textContent = `Total storage: ${formattedSize} | ${videos.length} video(s)`;
+                
+                // Update sync status
+                syncText.textContent = `Storage: ${formattedSize} | ${videos.length} videos`;
+                
+            } catch (error) {
+                console.error('Error updating storage info:', error);
+            }
+        }
+
+        function cancelUpload() {
+            if (confirm('Are you sure you want to cancel the upload? All selected videos will be removed from the queue.')) {
+                resetUploadSession();
+                showToast('Upload cancelled', 'info');
+            }
+        }
+
+        function resetUploadSession() {
+            currentUploadSession = {
+                files: [],
+                processedFiles: [],
+                isUploading: false
+            };
+            
+            // Hide queue and controls
+            uploadQueue.style.display = 'none';
+            uploadControls.style.display = 'none';
+            progressContainer.style.display = 'none';
+            
+            // Reset save button
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<span class="btn-icon">💾</span>Save to Gallery';
+        }
+
+        async function generateThumbnail(file, duration) {
+            return new Promise((resolve, reject) => {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                
+                video.onloadeddata = () => {
+                    // Seek to middle of video for thumbnail
+                    const seekTime = Math.min(duration / 2, 10);
+                    video.currentTime = seekTime;
+                    
+                    video.onseeked = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 300;
+                        canvas.height = 200;
+                        const ctx = canvas.getContext('2d');
+                        
+                        try {
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
+                            resolve(thumbnail);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    
+                    video.onerror = () => {
+                        reject(new Error('Video error'));
+                    };
+                };
+                
+                video.onerror = () => {
+                    reject(new Error('Could not load video'));
+                };
+                
+                video.src = URL.createObjectURL(file);
+            });
+        }
+
+        function playVideo(videoUrl, title) {
+            modalVideo.src = videoUrl;
+            modalVideo.load();
+            videoModal.style.display = 'flex';
+            
+            // Play video when modal opens
+            modalVideo.play().catch(e => {
+                console.log('Autoplay prevented:', e);
+            });
+        }
+
+        async function exportData() {
+            try {
+                // Get all videos from database
+                const exportData = await getAllVideosFromDB();
+                
+                // Convert ArrayBuffers to Base64 for export
+                const exportVideos = exportData.map(video => ({
+                    ...video,
+                    data: arrayBufferToBase64(video.data),
+                    // Remove the ArrayBuffer to avoid serialization issues
+                    _data: undefined
+                }));
+                
+                // Create export object
+                const exportObject = {
+                    version: '1.0',
+                    exportDate: new Date().toISOString(),
+                    videoCount: exportVideos.length,
+                    totalSize: exportVideos.reduce((sum, v) => sum + (v.size || 0), 0),
+                    videos: exportVideos
+                };
+                
+                // Create download link
+                const dataStr = JSON.stringify(exportObject, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `video-gallery-backup-${new Date().toISOString().split('T')[0]}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                showToast(`Exported ${exportVideos.length} video(s)`, 'success');
+                
+            } catch (error) {
+                console.error('Export error:', error);
+                showToast('Error exporting data', 'error');
+            }
+        }
+
+        async function handleImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!confirm('Importing will add videos to your gallery. Continue?')) {
+                importFile.value = '';
+                return;
+            }
+            
+            try {
+                const text = await file.text();
+                const importData = JSON.parse(text);
+                
+                if (!importData.videos || !Array.isArray(importData.videos)) {
+                    throw new Error('Invalid backup file format');
+                }
+                
+                let importedCount = 0;
+                let skippedCount = 0;
+                
+                for (const video of importData.videos) {
+                    try {
+                        // Convert Base64 back to ArrayBuffer
+                        if (video.data) {
+                            video.data = base64ToArrayBuffer(video.data);
+                        }
+                        
+                        // Generate new ID to avoid conflicts
+                        video.id = Date.now() + Math.random();
+                        video.uploadedAt = new Date().toISOString();
+                        
+                        // Save to database
+                        await saveVideoToDB(video);
+                        importedCount++;
+                    } catch (error) {
+                        console.error('Error importing video:', error);
+                        skippedCount++;
+                    }
+                }
+                
+                // Clear import file input
+                importFile.value = '';
+                
+                // Reload and update
+                await loadVideos();
+                updateStorageInfo();
+                
+                showToast(`Imported ${importedCount} video(s). ${skippedCount} skipped.`, 'success');
+                
+            } catch (error) {
+                console.error('Import error:', error);
+                showToast('Error importing data: ' + error.message, 'error');
+                importFile.value = '';
+            }
+        }
+
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function showToast(message, type = 'success') {
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? 'var(--danger-color)' : 
+                                   type === 'info' ? 'var(--primary-color)' : 
+                                   type === 'warning' ? 'var(--warning-color)' :
+                                   'var(--success-color)';
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function checkIfFirstVisit() {
+            const hasVisited = localStorage.getItem('videoGallery_hasVisited');
+            if (!hasVisited) {
+                showToast('Welcome! Videos are now saved in persistent storage and will survive browser refreshes!', 'info');
+                localStorage.setItem('videoGallery_hasVisited', 'true');
+            }
+        }
+
+        // Clean up blob URLs when page unloads
+        window.addEventListener('beforeunload', () => {
+            const cards = document.querySelectorAll('.video-card');
+            cards.forEach(card => {
+                if (card._videoUrl) {
+                    URL.revokeObjectURL(card._videoUrl);
+                }
+            });
+        });
+
+        // Handle offline/online status
+        window.addEventListener('online', () => {
+            syncStatus.innerHTML = '<span class="sync-indicator sync-online"></span> <span>Online - Storage: IndexedDB</span>';
+        });
+
+        window.addEventListener('offline', () => {
+            syncStatus.innerHTML = '<span class="sync-indicator sync-offline"></span> <span>Offline - Local storage only</span>';
+        });
+    </script>
+</body>
+</html>
